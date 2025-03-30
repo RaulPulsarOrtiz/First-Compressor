@@ -45,14 +45,14 @@ LevelMeter::LevelMeter (MeterFlags type)
 {
     lookAndFeelChanged();
 
-   onMaxLevelClicked = [](FFAU::LevelMeter& meter, [[maybe_unused]] int channel, [[maybe_unused]] juce::ModifierKeys mods)
+   onMaxLevelClicked = [](foleys::LevelMeter& meter, [[maybe_unused]] int channel, [[maybe_unused]] juce::ModifierKeys mods)
     {
         // default clear all indicators. Overwrite this lambda to change the behaviour
         meter.clearMaxLevelDisplay();
         meter.clearClipIndicator();
     };
 
-    onClipLightClicked = [](FFAU::LevelMeter& meter, [[maybe_unused]] int channel, [[maybe_unused]] juce::ModifierKeys mods)
+    onClipLightClicked = [](foleys::LevelMeter& meter, [[maybe_unused]] int channel, [[maybe_unused]] juce::ModifierKeys mods)
     {
         // default clear all indicators. Overwrite this lambda to change the behaviour
         meter.clearMaxLevelDisplay();

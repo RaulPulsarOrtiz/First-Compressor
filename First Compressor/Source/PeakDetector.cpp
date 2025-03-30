@@ -9,3 +9,12 @@
 */
 
 #include "PeakDetector.h"
+void PeakDetector::setSampleRate(double newSampleRate)
+{
+    sampleRate = newSampleRate;
+}
+
+//double PeakDetector::getSampleRate()
+//{
+//    return sampleRate;
+//}

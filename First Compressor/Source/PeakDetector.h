@@ -7,9 +7,9 @@
 
   ==============================================================================
 */
-#include<JuceHeader.h>
-#include <juce_audio_processors/processors/juce_AudioProcessor.h>
 #pragma once
+#include<JuceHeader.h>
+
 
 class PeakDetector  
 {
@@ -25,7 +25,7 @@ public:
     }
 
     void setWindowLength(int milisecons) {
-        iMeasuredLength = (int)(milisecons * 0.001 * audioProcessor.getSampleRate());
+        iMeasuredLength = (int)(milisecons * 0.02 * sampleRate);
     }
 
     float process(float input) {
@@ -64,6 +64,8 @@ public:
             return fMaxPrevious = coeff * fMaxNew + (1 - coeff) * fMaxOld;
         }
     }
+    void setSampleRate(double newSampleRate);
+   // double getSampleRate();
 private:
     int iMeasuredLength;
     int iMeasuredItems;
@@ -72,5 +74,6 @@ private:
     float fMaxPrevious;
     float fAval;
     float fMaxNew; // filter will gradually work from fMAxPrevious to thi value
-    juce::AudioProcessor& audioProcessor;
+    
+    double sampleRate{ 48000 };
 };

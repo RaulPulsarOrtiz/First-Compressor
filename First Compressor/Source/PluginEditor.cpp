@@ -8,12 +8,13 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include "F:\UWE\2 - PORTFOLIO\1 - New Projects\First Compressor\First-Compressor\First Compressor\Source\Meters\ff_meters.h"
-#include "F:\UWE\2 - PORTFOLIO\1 - New Projects\First Compressor\First-Compressor\First Compressor\Source\Meters\LevelMeter\LevelMeterSource.h"
+
 //==============================================================================
 FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstCompressorAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
+    peakDetectorGUI.setPeakDetectorObject(audioProcessor.getPeakDetectorObject());
+
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
    // levelMeterLookAndFeel.setColour(foleys::LevelMeter::lmMeterGradientLowColour, juce::Colours::green);
@@ -32,11 +33,11 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
     sldrRatio.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 70, 20);
     //  sldrRatio.setLookAndFeel(&otherLookAndFeel);
     addAndMakeVisible(sldrRatio);
-    ratioParameterAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "RATIO", sldrRatio);
+   ratioParameterAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "RATIO", sldrRatio);
 
-    meterGUI.setMeterSource(&audioProcessor.getMeterSource());
-    addAndMakeVisible(meterGUI);
-    setSize (400, 300);
+  //  meterGUI.setMeterSource(&audioProcessor.getMeterSource());
+  //  addAndMakeVisible(meterGUI);
+    setSize (700, 600);
 }
 
 FirstCompressorAudioProcessorEditor::~FirstCompressorAudioProcessorEditor()
@@ -52,7 +53,6 @@ void FirstCompressorAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void FirstCompressorAudioProcessorEditor::resized()

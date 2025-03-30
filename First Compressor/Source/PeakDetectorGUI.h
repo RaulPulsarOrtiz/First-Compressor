@@ -9,14 +9,15 @@
 */
 
 #pragma once
-
 #include "PeakDetector.h"
+
 class PeakDetectorGUI 
 {
 public:
-    PeakDetectorGUI { }
+    PeakDetectorGUI() { }
     ~PeakDetectorGUI() { }
+    void setPeakDetectorObject(PeakDetector* peakDetector);
 
 private:
-    PeakDetector& peakDetector;
+    PeakDetector* peakDetectorPtr { nullptr };
 };

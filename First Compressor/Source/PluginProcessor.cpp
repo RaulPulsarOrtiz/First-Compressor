@@ -8,19 +8,19 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "F:\UWE\2 - PORTFOLIO\1 - New Projects\First Compressor\First-Compressor\First Compressor\Source\PluginProcessor.h"
 
 //==============================================================================
 FirstCompressorAudioProcessor::FirstCompressorAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       ), apvts(*this,nullptr,"Parameters", createParameters())
+    : AudioProcessor(juce::AudioProcessor::BusesProperties()
+#if ! JucePlugin_IsMidiEffect
+#if ! JucePlugin_IsSynth
+        .withInput("Input", juce::AudioChannelSet::stereo(), true)
 #endif
+        .withOutput("Output", juce::AudioChannelSet::stereo(), true)
+#endif
+    ),
+    apvts(*this, nullptr, "Parameters", createParameters()) // ✅ Now properly initialized
 {
 }
 
@@ -90,15 +90,15 @@ void FirstCompressorAudioProcessor::changeProgramName (int index, const juce::St
 {
 }
 
-foleys::LevelMeterSource& FirstCompressorAudioProcessor::getMeterSource()
-{
-    return meterSource;
-}
+//foleys::LevelMeterSource& FirstCompressorAudioProcessor::getMeterSource()
+//{
+//    return meterSource;
+//}
 
 juce::AudioProcessorValueTreeState::ParameterLayout FirstCompressorAudioProcessor::createParameters()
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params; //Vector to push new parameters
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("THRESHOLD", "Threshold", 0.0, 1.0, 1.0)); //Threshold
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("THRESHOLD", "Threshold", -60.f, 0.f, 0.0f)); //Threshold
     params.push_back(std::make_unique<juce::AudioParameterInt>("RATIO", "Ratio", 1, 20, 1)); //Ratio as Integer is a good idea?
 
     return{ params.begin(), params.end() };
@@ -111,8 +111,9 @@ void FirstCompressorAudioProcessor::prepareToPlay (double sampleRate, int sample
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
        // this prepares the meterSource to measure all output blocks and average over 100ms to allow smooth movements
-    meterSource.resize(getTotalNumOutputChannels(), sampleRate * 0.1 / samplesPerBlock);
+   // meterSource.resize(getTotalNumOutputChannels(), sampleRate * 0.1 / samplesPerBlock);
     // ...
+    peakDetector.setSampleRate(sampleRate);
 }
 
 void FirstCompressorAudioProcessor::releaseResources()
@@ -122,7 +123,7 @@ void FirstCompressorAudioProcessor::releaseResources()
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool FirstCompressorAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool FirstCompressorAudioProcessor::isBusesLayoutSupported(const juce::AudioProcessor::BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
@@ -147,15 +148,34 @@ bool FirstCompressorAudioProcessor::isBusesLayoutSupported (const BusesLayout& l
 }
 #endif
 
+PeakDetector* FirstCompressorAudioProcessor::getPeakDetectorObject()
+{
+    return &peakDetector;
+}
+
+float FirstCompressorAudioProcessor::linearToDB(float linear) {
+    return 20.0f * std::log10(linear);
+}
+
+float FirstCompressorAudioProcessor::dBToLinear(float dB) {
+    return std::pow(10.0f, dB / 20.0f);
+}
+
 float FirstCompressorAudioProcessor::compress(float input) {
-    float fThresh = 0.2;
-    float fRatio = 16.0;
-    float output = 0.0;
-    if (input > fThresh)
-        output = fThresh + (input - fThresh) / fRatio;
+    float fThresh = 0.f;
+    fThresh = *apvts.getRawParameterValue("THRESHOLD");
+    float fRatio = 0.f;
+    fRatio = *apvts.getRawParameterValue("RATIO");
+    float output = 0.f;
+   
+    float thresholdLinear = dBToLinear(fThresh);
+    DBG("Threshold is: " << fThresh);
+    DBG("Threshold Linear" << thresholdLinear);
+    if (input > thresholdLinear)
+        output = thresholdLinear + (input - thresholdLinear) / fRatio;
     else
         output = input;
-    return input == 0 ? 1.0f : output / input;
+      return input == 0 ? 1.0f : output / input;
 }
 
 void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -163,6 +183,7 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
+    int numSamples = buffer.getNumSamples();
 
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
@@ -174,7 +195,7 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
         buffer.clear (i, 0, buffer.getNumSamples());
 
     // Measure the audio signal for the meter
-    meterSource.measureBlock(buffer);
+  //  meterSource.measureBlock(buffer);
 
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
@@ -186,7 +207,13 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     {
         auto* channelData = buffer.getWritePointer (channel);
 
-        // ..do something to the data...
+        for (int sample = 0; sample < numSamples; ++sample)
+        {
+            float inputSample = channelData[sample]; // Read sample
+            float peak = peakDetector.process(inputSample);
+            float gainReduction = compress(peak); // Apply compression
+            channelData[sample] = inputSample * gainReduction; // Write back processed sample
+        }
     }
 }
 

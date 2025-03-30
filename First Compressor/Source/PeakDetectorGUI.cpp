@@ -9,3 +9,7 @@
 */
 
 #include "PeakDetectorGUI.h"
+void PeakDetectorGUI::setPeakDetectorObject(PeakDetector* peakDetectorptr)
+{
+    peakDetectorPtr = peakDetectorptr;
+}

@@ -9,9 +9,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "F:\UWE\2 - PORTFOLIO\1 - New Projects\First Compressor\First-Compressor\First Compressor\Source\Meters\ff_meters.h"
-#include "F:\UWE\2 - PORTFOLIO\1 - New Projects\First Compressor\First-Compressor\First Compressor\Source\Meters\LevelMeter\LevelMeterSource.h"
 #include "PeakDetector.h"
+
 //==============================================================================
 /**
 */
@@ -29,6 +28,10 @@ public:
    #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
    #endif
+
+    PeakDetector* getPeakDetectorObject();
+    float linearToDB(float linear);
+    float dBToLinear(float dB);
     float compress(float x);
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
@@ -54,14 +57,15 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-    foleys::LevelMeterSource& getMeterSource();
+ //   foleys::LevelMeterSource& getMeterSource();
     juce::AudioProcessorValueTreeState apvts; //Try to make a function to keep this private
     juce::AudioProcessorValueTreeState::ParameterLayout createParameters(); //This returns a list of the parameters 
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FirstCompressorAudioProcessor)
-    foleys::LevelMeterSource meterSource;
+ //   foleys::LevelMeterSource meterSource;
     PeakDetector peakDetector;
- 
+    //float fThresh{ 0 };
+    //float fRatio{ 0 };
     
 };

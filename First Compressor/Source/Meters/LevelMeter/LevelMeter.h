@@ -36,6 +36,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "LevelMeterSource.h"
 namespace foleys
 {
 
