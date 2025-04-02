@@ -161,21 +161,18 @@ float FirstCompressorAudioProcessor::dBToLinear(float dB) {
     return std::pow(10.0f, dB / 20.0f);
 }
 
-float FirstCompressorAudioProcessor::compress(float input) {
-    float fThresh = 0.f;
-    fThresh = *apvts.getRawParameterValue("THRESHOLD");
-    float fRatio = 0.f;
-    fRatio = *apvts.getRawParameterValue("RATIO");
-    float output = 0.f;
-   
+float FirstCompressorAudioProcessor::compress(float input, float fThresh, float fRatio) {
+ 
+    float output{ 0.f };
+    
     float thresholdLinear = dBToLinear(fThresh);
-    DBG("Threshold is: " << fThresh);
-    DBG("Threshold Linear" << thresholdLinear);
+   // DBG("Threshold is: " << fThresh);
+    //DBG("Threshold Linear" << thresholdLinear);
     if (input > thresholdLinear)
         output = thresholdLinear + (input - thresholdLinear) / fRatio;
     else
         output = input;
-      return input == 0 ? 1.0f : output / input;
+    return input == 0 ? 1.0f : output / input;
 }
 
 void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -203,16 +200,24 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
+
+     // Fetch compressor parameters once per block
+    
+    fThresh = *apvts.getRawParameterValue("THRESHOLD");
+    fRatio = *apvts.getRawParameterValue("RATIO");
+
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
 
         for (int sample = 0; sample < numSamples; ++sample)
         {
-            float inputSample = channelData[sample]; // Read sample
-            float peak = peakDetector.process(inputSample);
-            float gainReduction = compress(peak); // Apply compression
-            channelData[sample] = inputSample * gainReduction; // Write back processed sample
+            float* inputSample = (&channelData[sample]); // Get pointer to current sample
+            inputSample = inputSample;
+            float peak = peakDetector.process(*inputSample);
+            float gainReduction = compress(peak, fThresh, fRatio);
+            *inputSample *= gainReduction;
+          //  buffer.addSample(channel, sample, signalCompressed);
         }
     }
 }

@@ -32,7 +32,7 @@ public:
     PeakDetector* getPeakDetectorObject();
     float linearToDB(float linear);
     float dBToLinear(float dB);
-    float compress(float x);
+    float compress(float input, float fThresh, float fRatio);
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
     //==============================================================================
@@ -65,7 +65,9 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FirstCompressorAudioProcessor)
  //   foleys::LevelMeterSource meterSource;
     PeakDetector peakDetector;
-    //float fThresh{ 0 };
-    //float fRatio{ 0 };
+   // float fThresh = 0.f;
+   // float fRatio = 0.f;
+    float fThresh{ 0.f };
+    float fRatio{ 0.f };
     
 };

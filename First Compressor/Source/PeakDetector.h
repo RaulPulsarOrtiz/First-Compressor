@@ -44,7 +44,7 @@ public:
         for (int i = 0; i < iMeasuredLength; i++) {
             iMeasuredItems++;
         }
-        if (iMeasuredItems = iMeasuredLength)
+        if (iMeasuredItems == iMeasuredLength)
         {
             //Scale
             fMax = (fMax * (40 - 1)) + 1;
