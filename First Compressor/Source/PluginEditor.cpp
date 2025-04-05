@@ -35,6 +35,12 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
     addAndMakeVisible(sldrRatio);
    ratioParameterAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "RATIO", sldrRatio);
 
+   sldrAttack.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+   sldrAttack.setTextValueSuffix("ms"); //Make the tralation between slider 0 to 1 to dB
+   sldrAttack.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 70, 20);
+   //  sldrRatio.setLookAndFeel(&otherLookAndFeel);
+   addAndMakeVisible(sldrAttack);
+   attackParameterAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "ATTACK", sldrAttack);
   //  meterGUI.setMeterSource(&audioProcessor.getMeterSource());
   //  addAndMakeVisible(meterGUI);
     setSize (700, 600);
@@ -61,5 +67,6 @@ void FirstCompressorAudioProcessorEditor::resized()
     // subcomponents in your editor..
     sldrThreshold.setBounds(70, 50, 265, 200);
     sldrRatio.setBounds(410, 50, 265, 200);
+    sldrAttack.setBounds(70, 270, 100, 100);
 }
 

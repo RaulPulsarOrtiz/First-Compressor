@@ -34,7 +34,7 @@ private:
  //   foleys::LevelMeter meterGUI; // The UI meter
 //foleys::LevelMeterLookAndFeel levelMeterLookAndFeel;
   //  foleys::LevelMeter meterGUI{ foleys::LevelMeter::Minimal };
-    juce::Slider sldrThreshold, sldrRatio;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> thresholdParameterAttachment, ratioParameterAttachment;
+    juce::Slider sldrThreshold, sldrRatio, sldrAttack;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> thresholdParameterAttachment, ratioParameterAttachment, attackParameterAttachment;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FirstCompressorAudioProcessorEditor)
 };

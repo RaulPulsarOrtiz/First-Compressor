@@ -100,8 +100,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout FirstCompressorAudioProcesso
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params; //Vector to push new parameters
     params.push_back(std::make_unique<juce::AudioParameterFloat>("THRESHOLD", "Threshold", -60.f, 0.f, 0.0f)); //Threshold
     params.push_back(std::make_unique<juce::AudioParameterInt>("RATIO", "Ratio", 1, 20, 1)); //Ratio as Integer is a good idea?
+    params.push_back(std::make_unique <juce::AudioParameterFloat> ("ATTACK", "Attack", 0.01f, 0.2f, 0.01f)); // smoothValue want the ramp in second. Range from 10ms to 200ms
 
-    return{ params.begin(), params.end() };
+        return{ params.begin(), params.end() };
 
 
 }
@@ -114,6 +115,7 @@ void FirstCompressorAudioProcessor::prepareToPlay (double sampleRate, int sample
    // meterSource.resize(getTotalNumOutputChannels(), sampleRate * 0.1 / samplesPerBlock);
     // ...
     peakDetector.setSampleRate(sampleRate);
+    attackRamp.reset(sampleRate, fAttack);
 }
 
 void FirstCompressorAudioProcessor::releaseResources()
@@ -205,6 +207,13 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     
     fThresh = *apvts.getRawParameterValue("THRESHOLD");
     fRatio = *apvts.getRawParameterValue("RATIO");
+    fAttack = *apvts.getRawParameterValue("ATTACK") / 1000.f; //SmoothValue wants the ramp in seconds no in samples
+
+    if (fAttack != previousfAttack)
+    {
+        attackRamp.reset(getSampleRate(), fAttack);
+        previousfAttack = fAttack;
+    }
 
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
@@ -212,11 +221,12 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
 
         for (int sample = 0; sample < numSamples; ++sample)
         {
-            float* inputSample = (&channelData[sample]); // Get pointer to current sample
-            inputSample = inputSample;
+            float* inputSample = (&channelData[sample]); // Get pointer to current sample   
             float peak = peakDetector.process(*inputSample);
             float gainReduction = compress(peak, fThresh, fRatio);
-            *inputSample *= gainReduction;
+            attackRamp.setTargetValue(gainReduction);
+            auto gainReductionRamped = attackRamp.getNextValue();
+            *inputSample *= gainReductionRamped;
           //  buffer.addSample(channel, sample, signalCompressed);
         }
     }
