@@ -69,7 +69,11 @@ private:
    // float fRatio = 0.f;
     float fThresh{ 0.f };
     float fRatio{ 0.f };
+   // juce::SmoothedValue<float> attackReleaseRamp;
     juce::SmoothedValue<float> attackRamp;
     float fAttack{ 0.f };
     float previousfAttack{ 0.f };
+    float fRelease{ 0.f };
+    float previousfRelease{ 0.f };
+    float previousRawGainReduction = 1.0f;
 };

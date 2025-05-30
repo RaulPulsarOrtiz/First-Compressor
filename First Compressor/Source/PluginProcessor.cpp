@@ -100,8 +100,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout FirstCompressorAudioProcesso
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params; //Vector to push new parameters
     params.push_back(std::make_unique<juce::AudioParameterFloat>("THRESHOLD", "Threshold", -60.f, 0.f, 0.0f)); //Threshold
     params.push_back(std::make_unique<juce::AudioParameterInt>("RATIO", "Ratio", 1, 20, 1)); //Ratio as Integer is a good idea?
-    params.push_back(std::make_unique <juce::AudioParameterFloat> ("ATTACK", "Attack", 0.01f, 0.2f, 0.01f)); // smoothValue want the ramp in second. Range from 10ms to 200ms
-
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("ATTACK", "Attack", 0.01f, 0.2f, 0.01f)); // smoothValue want the ramp in second. Range from 10ms to 200ms atm
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("RELEASE", "Release", 0.5f, 1.f, 0.4f));// smoothValue want the ramp in second. Range from 40ms to 1000ms atm
         return{ params.begin(), params.end() };
 
 
@@ -116,6 +116,8 @@ void FirstCompressorAudioProcessor::prepareToPlay (double sampleRate, int sample
     // ...
     peakDetector.setSampleRate(sampleRate);
     attackRamp.reset(sampleRate, fAttack);
+   // gainReductionRamp.setCurrentAndTargetValue(1.0f);
+
 }
 
 void FirstCompressorAudioProcessor::releaseResources()
@@ -174,7 +176,7 @@ float FirstCompressorAudioProcessor::compress(float input, float fThresh, float 
         output = thresholdLinear + (input - thresholdLinear) / fRatio;
     else
         output = input;
-    return input == 0 ? 1.0f : output / input;
+    return input == 0 ? 1.0f : output / input; //If input == 0, you avoid division by zero and return 1.0f
 }
 
 void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -207,30 +209,43 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     
     fThresh = *apvts.getRawParameterValue("THRESHOLD");
     fRatio = *apvts.getRawParameterValue("RATIO");
-    fAttack = *apvts.getRawParameterValue("ATTACK") / 1000.f; //SmoothValue wants the ramp in seconds no in samples
+    fAttack = *apvts.getRawParameterValue("ATTACK"); // / 1000.f; //SmoothValue wants the ramp in seconds no in samples
+    fRelease = *apvts.getRawParameterValue("RELEASE"); // / 1000.f; //SmoothValue wants the ramp in seconds no in samples
+        DBG("release is: " << fRelease);
 
-    if (fAttack != previousfAttack)
-    {
-        attackRamp.reset(getSampleRate(), fAttack);
-        previousfAttack = fAttack;
-    }
+        if (fAttack != previousfAttack)
+        {       
+            previousfAttack = fAttack;
+        }
 
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        for (int sample = 0; sample < numSamples; ++sample)
+        if (fRelease != previousfRelease)
         {
-            float* inputSample = (&channelData[sample]); // Get pointer to current sample   
-            float peak = peakDetector.process(*inputSample);
-            float gainReduction = compress(peak, fThresh, fRatio);
-            attackRamp.setTargetValue(gainReduction);
-            auto gainReductionRamped = attackRamp.getNextValue();
-            *inputSample *= gainReductionRamped;
+            previousfRelease = fRelease;
+        }
+        float previousGainReduction = 1.0f; //Is this a legit wait to call the signal before compressing????? The gainReduction being smaller than 1.0 it always means that the compressing is working, thus activate attack???
+
+
+        for (int channel = 0; channel < totalNumInputChannels; ++channel)
+        {
+            auto* channelData = buffer.getWritePointer(channel);
+
+            for (int sample = 0; sample < numSamples; ++sample)
+            {
+                float* inputSample = (&channelData[sample]); // Get pointer to current sample   
+                float peak = peakDetector.process(*inputSample);
+                float gainReduction = compress(peak, fThresh, fRatio);
+                attackRamp.setTargetValue(gainReduction);
+                auto gainReductionRamped = attackRamp.getNextValue();
+                *inputSample *= gainReductionRamped;
+                //  buffer.addSample(channel, sample, signalCompressed);
+                }
+
+           
           //  buffer.addSample(channel, sample, signalCompressed);
         }
-    }
+    
 }
+
 
 //==============================================================================
 bool FirstCompressorAudioProcessor::hasEditor() const
