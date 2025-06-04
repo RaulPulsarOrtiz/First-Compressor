@@ -22,27 +22,36 @@ void PeakDetector::setSampleRate(double newSampleRate)
     setWindowLengthMs(windowLengthMs); // Recalculate with updated sample rate
 }
 
+//float PeakDetector::process(float inputSample)
+//{
+//    float absSample = std::abs(inputSample);
+//    if (absSample > maxPeak)
+//        maxPeak = absSample;
+//
+//    sampleCounter++;
+//
+//    if (sampleCounter >= windowLengthSamples)
+//    {
+//        // Smooth update
+//        const float coeff = (maxPeak > smoothedPeak) ? attackCoeff : releaseCoeff;
+//        smoothedPeak = coeff * maxPeak + (1.0f - coeff) * smoothedPeak;
+//
+//        // Reset window
+//        maxPeak = 0.0f;
+//        sampleCounter = 0;
+//    }
+//
+//    return smoothedPeak;
+//
+//}
+
 float PeakDetector::process(float inputSample)
 {
     float absSample = std::abs(inputSample);
-    if (absSample > maxPeak)
-        maxPeak = absSample;
-
-    sampleCounter++;
-
-    if (sampleCounter >= windowLengthSamples)
-    {
-        // Smooth update
-        const float coeff = (maxPeak > smoothedPeak) ? attackCoeff : releaseCoeff;
-        smoothedPeak = coeff * maxPeak + (1.0f - coeff) * smoothedPeak;
-
-        // Reset window
-        maxPeak = 0.0f;
-        sampleCounter = 0;
-    }
+    const float coeff = (absSample > smoothedPeak) ? attackCoeff : releaseCoeff;
+    smoothedPeak = coeff * absSample + (1.0f - coeff) * smoothedPeak;
 
     return smoothedPeak;
-
 }
 //double PeakDetector::getSampleRate()
 //{

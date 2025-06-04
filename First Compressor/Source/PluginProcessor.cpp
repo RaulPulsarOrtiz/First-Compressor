@@ -211,33 +211,26 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     fRatio = *apvts.getRawParameterValue("RATIO");
     fAttack = *apvts.getRawParameterValue("ATTACK"); // / 1000.f; //SmoothValue wants the ramp in seconds no in samples
     fRelease = *apvts.getRawParameterValue("RELEASE"); // / 1000.f; //SmoothValue wants the ramp in seconds no in samples
-        DBG("release is: " << fRelease);
 
-        if (fAttack != previousfAttack)
-        {       
-            previousfAttack = fAttack;
-        }
+    if (fAttack != previousfAttack)
+    {
+        attackRamp.reset(getSampleRate(), fAttack);
+        previousfAttack = fAttack;
+    }
 
-        if (fRelease != previousfRelease)
+    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    {
+        auto* channelData = buffer.getWritePointer(channel);
+
+        for (int sample = 0; sample < numSamples; ++sample)
         {
-            previousfRelease = fRelease;
-        }
-        float previousGainReduction = 1.0f; //Is this a legit wait to call the signal before compressing????? The gainReduction being smaller than 1.0 it always means that the compressing is working, thus activate attack???
-
-
-        for (int channel = 0; channel < totalNumInputChannels; ++channel)
-        {
-            auto* channelData = buffer.getWritePointer(channel);
-
-            for (int sample = 0; sample < numSamples; ++sample)
-            {
-                float* inputSample = (&channelData[sample]); // Get pointer to current sample   
-                float peak = peakDetector.process(*inputSample);
-                float gainReduction = compress(peak, fThresh, fRatio);
-                attackRamp.setTargetValue(gainReduction);
-                auto gainReductionRamped = attackRamp.getNextValue();
-                *inputSample *= gainReductionRamped;
-                //  buffer.addSample(channel, sample, signalCompressed);
+            float* inputSample = (&channelData[sample]); // Get pointer to current sample   
+            float peak = peakDetector.process(*inputSample);
+            float gainReduction = compress(peak, fThresh, fRatio);
+            attackRamp.setTargetValue(gainReduction);
+            auto gainReductionRamped = attackRamp.getNextValue();
+            *inputSample *= gainReductionRamped;
+            //  buffer.addSample(channel, sample, signalCompressed);
                 }
 
            
