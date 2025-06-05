@@ -114,8 +114,9 @@ void FirstCompressorAudioProcessor::prepareToPlay (double sampleRate, int sample
        // this prepares the meterSource to measure all output blocks and average over 100ms to allow smooth movements
    // meterSource.resize(getTotalNumOutputChannels(), sampleRate * 0.1 / samplesPerBlock);
     // ...
-    peakDetector.setSampleRate(sampleRate);
+    //peakDetector.setSampleRate(sampleRate);
     attackRamp.reset(sampleRate, fAttack);
+
    // gainReductionRamp.setCurrentAndTargetValue(1.0f);
 
 }
@@ -212,12 +213,19 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     fAttack = *apvts.getRawParameterValue("ATTACK"); // / 1000.f; //SmoothValue wants the ramp in seconds no in samples
     fRelease = *apvts.getRawParameterValue("RELEASE"); // / 1000.f; //SmoothValue wants the ramp in seconds no in samples
 
+    float smoothedGain = 1.0f; // start with no gain reduction
+
     if (fAttack != previousfAttack)
     {
         attackRamp.reset(getSampleRate(), fAttack);
-        previousfAttack = fAttack;
+        previousfAttack = fAttack; 
     }
-
+    
+   // if (fRelease != previousfRelease)
+   // {
+   //     previousfRelease = fRelease;
+   // }
+    
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer(channel);
@@ -227,16 +235,18 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
             float* inputSample = (&channelData[sample]); // Get pointer to current sample   
             float peak = peakDetector.process(*inputSample);
             float gainReduction = compress(peak, fThresh, fRatio);
+
+           // float currentValue = attackRamp.getCurrentValue();
+           // bool isAttacking = gainReduction < currentValue;
+           // double rampTime = (isAttacking ? previousfAttack : previousfRelease);
+
             attackRamp.setTargetValue(gainReduction);
             auto gainReductionRamped = attackRamp.getNextValue();
             *inputSample *= gainReductionRamped;
-            //  buffer.addSample(channel, sample, signalCompressed);
-                }
 
-           
-          //  buffer.addSample(channel, sample, signalCompressed);
+                }
         }
-    
+   
 }
 
 

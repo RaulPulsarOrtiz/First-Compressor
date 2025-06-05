@@ -18,8 +18,6 @@ public:
 
     }
 
-    void setWindowLengthMs(int milisecons);
-    void PeakDetector::setSampleRate(double newSampleRate);
     float process(float inputSample);
 
     // double getSampleRate();
