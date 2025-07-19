@@ -225,6 +225,8 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
    // {
    //     previousfRelease = fRelease;
    // }
+    rmsLevel = buffer.getRMSLevel(0, 0, buffer.getNumSamples());
+    rmsLevelDecibels = Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
     
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
@@ -233,7 +235,7 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
         for (int sample = 0; sample < numSamples; ++sample)
         {
             float* inputSample = (&channelData[sample]); // Get pointer to current sample   
-            float peak = peakDetector.process(*inputSample);
+            peak = peakDetector.process(*inputSample);
             float gainReduction = compress(peak, fThresh, fRatio);
 
            // float currentValue = attackRamp.getCurrentValue();
@@ -249,6 +251,20 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
    
 }
 
+float FirstCompressorAudioProcessor::getPeakValue()
+{
+    return peak;
+}
+
+float FirstCompressorAudioProcessor::getRMS()
+{
+    return rmsLevel;
+}
+
+float FirstCompressorAudioProcessor::getDecibelsRMS()
+{
+    return rmsLevelDecibels;
+}
 
 //==============================================================================
 bool FirstCompressorAudioProcessor::hasEditor() const

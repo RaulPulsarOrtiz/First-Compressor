@@ -13,6 +13,7 @@
 #include "PeakDetectorGUI.h"
 //#include "F:\UWE\2 - PORTFOLIO\1 - New Projects\First Compressor\First-Compressor\First Compressor\Source\Meters\LookAndFeel\LevelMeterLookAndFeel.h"
 #include "../../../../../../3 - 2021-2022 Third/SDA/Exercises/First Time/Practical05 Juce/modules/juce_core/system/juce_PlatformDefs.h"
+#include "F:\UWE\2 - PORTFOLIO\1 - New Projects\First Compressor\First-Compressor\First Compressor\Source\dBMeter.h"
 //==============================================================================
 /**
 */
@@ -87,7 +88,7 @@ public:
                                                              // rotaryAngle is the angle in radiants from the center of the slider to the start position or to the end position
 };
 
-class FirstCompressorAudioProcessorEditor  : public juce::AudioProcessorEditor
+class FirstCompressorAudioProcessorEditor  : public juce::AudioProcessorEditor, public Timer
 {
 public:
     FirstCompressorAudioProcessorEditor (FirstCompressorAudioProcessor&);
@@ -96,7 +97,7 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
-
+    void timerCallback() override;
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -115,4 +116,5 @@ private:
 
     /**Custom Look&Feel for 'Filter' slider */
     CompressorLookAndFeel compressorLookAndFeel;
+    verticalMeter verticalMeterL, verticalMeterR;
 };

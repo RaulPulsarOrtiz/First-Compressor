@@ -68,7 +68,7 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
     peakDetectorGUI.setPeakDetectorObject(audioProcessor.getPeakDetectorObject());
-
+ 
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
    // levelMeterLookAndFeel.setColour(foleys::LevelMeter::lmMeterGradientLowColour, juce::Colours::green);
@@ -106,6 +106,11 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
   //  meterGUI.setMeterSource(&audioProcessor.getMeterSource());
   //  addAndMakeVisible(meterGUI);
     setSize (700, 433);
+
+    addAndMakeVisible(verticalMeterL);
+    addAndMakeVisible(verticalMeterR);
+
+    startTimerHz(10); //24 fps
 }
 
 FirstCompressorAudioProcessorEditor::~FirstCompressorAudioProcessorEditor()
@@ -139,6 +144,8 @@ void FirstCompressorAudioProcessorEditor::paint (juce::Graphics& g)
     g.setColour(juce::Colours::rebeccapurple);
     g.drawRect(attRelRightArea);
 
+
+    g.fillAll(Colours::darkgrey);
 }
 
 void FirstCompressorAudioProcessorEditor::resized()
@@ -173,5 +180,15 @@ void FirstCompressorAudioProcessorEditor::resized()
     sldrRatio.setBounds(rightCentreX, rightCentreY, 140, 140);
     sldrAttack.setBounds(attRelLeftCentreX + 40, attRelLeftCentreY, 90, 90);
     sldrRelease.setBounds(attRelRightCentreX - 130, attRelRightCentreY, 90, 90);
+
+    verticalMeterL.setBounds(100, 100, 200, 15);
 }
 
+void FirstCompressorAudioProcessorEditor::timerCallback()
+{
+    //verticalMeterL.setLevel(audioProcessor.getPeakValue());
+    verticalMeterL.setLevel(audioProcessor.getDecibelsRMS());
+
+    verticalMeterL.repaint();
+    verticalMeterR.repaint();
+}

@@ -35,6 +35,9 @@ public:
     float compress(float input, float fThresh, float fRatio);
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
+    float getPeakValue(); //for each channel separated?
+    float getRMS(); //for each channel separated?
+    float getDecibelsRMS(); //for each channel separated?
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -76,4 +79,8 @@ private:
     float fRelease{ 0.f };
     float previousfRelease{ 0.f };
     float previousRawGainReduction = 1.0f;
+
+    float peak;
+    float rmsLevel;
+    float rmsLevelDecibels;
 };
