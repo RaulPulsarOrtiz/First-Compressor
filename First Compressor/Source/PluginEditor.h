@@ -116,5 +116,5 @@ private:
 
     /**Custom Look&Feel for 'Filter' slider */
     CompressorLookAndFeel compressorLookAndFeel;
-    verticalMeter verticalMeterL, verticalMeterR;
+    verticalMeter verticalMeterL, verticalMeterR, verticalOutputMeterL, verticalOutputMeterR;
 };

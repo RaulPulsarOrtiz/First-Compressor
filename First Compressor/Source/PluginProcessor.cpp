@@ -196,16 +196,6 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // Measure the audio signal for the meter
-  //  meterSource.measureBlock(buffer);
-
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-
      // Fetch compressor parameters once per block
     
     fThresh = *apvts.getRawParameterValue("THRESHOLD");
@@ -225,8 +215,9 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
    // {
    //     previousfRelease = fRelease;
    // }
-    rmsLevel = buffer.getRMSLevel(0, 0, buffer.getNumSamples());
-    rmsLevelDecibels = Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
+   
+    rmsLevelDecibelsL = Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
+    rmsLevelDecibelsR = Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));
     
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
@@ -235,37 +226,74 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
         for (int sample = 0; sample < numSamples; ++sample)
         {
             float* inputSample = (&channelData[sample]); // Get pointer to current sample   
-            peak = peakDetector.process(*inputSample);
-            float gainReduction = compress(peak, fThresh, fRatio);
-
-           // float currentValue = attackRamp.getCurrentValue();
-           // bool isAttacking = gainReduction < currentValue;
-           // double rampTime = (isAttacking ? previousfAttack : previousfRelease);
+            if (channel == 0)
+            {
+                peakL = peakDetector.process(*inputSample);
+            }
+            else
+            {
+                peakR = peakDetector.process(*inputSample);
+            }
+        }
+    }
+            gainReduction = compress(peakL, fThresh, fRatio);
+                        // float currentValue = attackRamp.getCurrentValue();
+            // bool isAttacking = gainReduction < currentValue;
+            // double rampTime = (isAttacking ? previousfAttack : previousfRelease);
 
             attackRamp.setTargetValue(gainReduction);
-            auto gainReductionRamped = attackRamp.getNextValue();
-            *inputSample *= gainReductionRamped;
 
+            // Now: apply the same ramped gain to both channels
+         for (int sample = 0; sample < numSamples; ++sample)
+         {
+                auto gainReductionRamped = attackRamp.getNextValue();
+                for (int channel = 0; channel < totalNumInputChannels; ++channel)
+                {
+                    auto* channelData = buffer.getWritePointer(channel);
+                    float* inputSample = (&channelData[sample]);
+                    *inputSample *= gainReductionRamped;
+                   
                 }
-        }
-   
+         }
+
+            rmsLevelDecibelsOutL = Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
+            rmsLevelDecibelsOutR = Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));   
 }
 
-float FirstCompressorAudioProcessor::getPeakValue()
+float FirstCompressorAudioProcessor::getPeakValueL()
 {
-    return peak;
+    return peakL;
 }
 
-float FirstCompressorAudioProcessor::getRMS()
+float FirstCompressorAudioProcessor::getPeakValueR()
 {
-    return rmsLevel;
+    return peakR;
 }
 
-float FirstCompressorAudioProcessor::getDecibelsRMS()
+float FirstCompressorAudioProcessor::getRMSDecibelsL()
 {
-    return rmsLevelDecibels;
+    return rmsLevelDecibelsL;
 }
 
+float FirstCompressorAudioProcessor::getRMSDecibelsR()
+{
+    return rmsLevelDecibelsR;
+}
+
+float FirstCompressorAudioProcessor::getRMSDecibelsOutL()
+{
+    return rmsLevelDecibelsOutL;
+}
+
+float FirstCompressorAudioProcessor::getRMSDecibelsOutR()
+{
+    return rmsLevelDecibelsOutR;
+}
+
+float FirstCompressorAudioProcessor::getcompressedOutputL()
+{
+    return compressedOutputL;
+}
 //==============================================================================
 bool FirstCompressorAudioProcessor::hasEditor() const
 {

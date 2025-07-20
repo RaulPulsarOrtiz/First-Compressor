@@ -110,7 +110,9 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
     addAndMakeVisible(verticalMeterL);
     addAndMakeVisible(verticalMeterR);
 
-    startTimerHz(10); //24 fps
+    addAndMakeVisible(verticalOutputMeterL);
+    addAndMakeVisible(verticalOutputMeterR);
+    startTimerHz(24); //24 fps
 }
 
 FirstCompressorAudioProcessorEditor::~FirstCompressorAudioProcessorEditor()
@@ -182,13 +184,25 @@ void FirstCompressorAudioProcessorEditor::resized()
     sldrRelease.setBounds(attRelRightCentreX - 130, attRelRightCentreY, 90, 90);
 
     verticalMeterL.setBounds(100, 100, 200, 15);
+    verticalMeterR.setBounds(100, 140, 200, 15);
+    verticalOutputMeterL.setBounds(400, 100, 200, 15);
+    verticalOutputMeterR.setBounds(400, 140, 200, 15);
 }
 
 void FirstCompressorAudioProcessorEditor::timerCallback()
 {
     //verticalMeterL.setLevel(audioProcessor.getPeakValue());
-    verticalMeterL.setLevel(audioProcessor.getDecibelsRMS());
+   // verticalMeterL.setLevel(audioProcessor.getRMSDecibelsL());
+   //verticalMeterR.setLevel(audioProcessor.getRMSDecibelsR());
+    verticalMeterL.setLevel(Decibels::gainToDecibels(audioProcessor.getPeakValueL()));
+    verticalMeterR.setLevel(Decibels::gainToDecibels(audioProcessor.getPeakValueR()));
+    verticalOutputMeterL.setLevel(audioProcessor.getRMSDecibelsOutR());
+    verticalOutputMeterR.setLevel(audioProcessor.getRMSDecibelsOutR());
+
 
     verticalMeterL.repaint();
     verticalMeterR.repaint();
+
+    verticalOutputMeterL.repaint();
+    verticalOutputMeterR.repaint();
 }
