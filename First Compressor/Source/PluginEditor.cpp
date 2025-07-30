@@ -65,7 +65,11 @@ void CompressorLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, in
 
 
 FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstCompressorAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor(&p), audioProcessor(p), 
+    verticalMeterL([&]() { return audioProcessor.getPeakValueL(); }), 
+    verticalMeterR([&]() { return audioProcessor.getPeakValueR(); }),
+    verticalOutputMeterL([&]() { return audioProcessor.getcompressedOutputL(); }),
+    verticalOutputMeterR([&]() { return audioProcessor.getRMSDecibelsOutR(); })
 {
     peakDetectorGUI.setPeakDetectorObject(audioProcessor.getPeakDetectorObject());
  
@@ -112,7 +116,7 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
 
     addAndMakeVisible(verticalOutputMeterL);
     addAndMakeVisible(verticalOutputMeterR);
-    startTimerHz(24); //24 fps
+   // startTimerHz(24); //24 fps
 }
 
 FirstCompressorAudioProcessorEditor::~FirstCompressorAudioProcessorEditor()
@@ -183,26 +187,26 @@ void FirstCompressorAudioProcessorEditor::resized()
     sldrAttack.setBounds(attRelLeftCentreX + 40, attRelLeftCentreY, 90, 90);
     sldrRelease.setBounds(attRelRightCentreX - 130, attRelRightCentreY, 90, 90);
 
-    verticalMeterL.setBounds(100, 100, 200, 15);
-    verticalMeterR.setBounds(100, 140, 200, 15);
-    verticalOutputMeterL.setBounds(400, 100, 200, 15);
-    verticalOutputMeterR.setBounds(400, 140, 200, 15);
+    verticalMeterL.setBounds(60, 100, 15, 200);
+    verticalMeterR.setBounds(90, 100, 15, 200);
+    verticalOutputMeterL.setBounds(610, 100, 15, 200);
+    verticalOutputMeterR.setBounds(640, 100, 15, 200);
 }
 
-void FirstCompressorAudioProcessorEditor::timerCallback()
-{
-    //verticalMeterL.setLevel(audioProcessor.getPeakValue());
-   // verticalMeterL.setLevel(audioProcessor.getRMSDecibelsL());
-   //verticalMeterR.setLevel(audioProcessor.getRMSDecibelsR());
-    verticalMeterL.setLevel(Decibels::gainToDecibels(audioProcessor.getPeakValueL()));
-    verticalMeterR.setLevel(Decibels::gainToDecibels(audioProcessor.getPeakValueR()));
-    verticalOutputMeterL.setLevel(audioProcessor.getRMSDecibelsOutR());
-    verticalOutputMeterR.setLevel(audioProcessor.getRMSDecibelsOutR());
-
-
-    verticalMeterL.repaint();
-    verticalMeterR.repaint();
-
-    verticalOutputMeterL.repaint();
-    verticalOutputMeterR.repaint();
-}
+//void FirstCompressorAudioProcessorEditor::timerCallback()
+//{
+//    //verticalMeterL.setLevel(audioProcessor.getPeakValue());
+//   // verticalMeterL.setLevel(audioProcessor.getRMSDecibelsL());
+//   //verticalMeterR.setLevel(audioProcessor.getRMSDecibelsR());
+//    verticalMeterL.setLevel(Decibels::gainToDecibels(audioProcessor.getPeakValueL()));
+//    verticalMeterR.setLevel(Decibels::gainToDecibels(audioProcessor.getPeakValueR()));
+//    verticalOutputMeterL.setLevel(audioProcessor.getRMSDecibelsOutR());
+//    verticalOutputMeterR.setLevel(audioProcessor.getRMSDecibelsOutR());
+//
+//
+//    verticalMeterL.repaint();
+//    verticalMeterR.repaint();
+//
+//    verticalOutputMeterL.repaint();
+//    verticalOutputMeterR.repaint();
+//}

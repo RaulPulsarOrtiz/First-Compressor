@@ -253,21 +253,23 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
                     float* inputSample = (&channelData[sample]);
                     *inputSample *= gainReductionRamped;
                    
+                    compressedOutputL = *inputSample;
                 }
          }
-
+         
+         
             rmsLevelDecibelsOutL = Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
             rmsLevelDecibelsOutR = Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));   
 }
 
 float FirstCompressorAudioProcessor::getPeakValueL()
 {
-    return peakL;
+    return Decibels::gainToDecibels(peakL);
 }
 
 float FirstCompressorAudioProcessor::getPeakValueR()
 {
-    return peakR;
+    return Decibels::gainToDecibels(peakR);
 }
 
 float FirstCompressorAudioProcessor::getRMSDecibelsL()
@@ -292,7 +294,7 @@ float FirstCompressorAudioProcessor::getRMSDecibelsOutR()
 
 float FirstCompressorAudioProcessor::getcompressedOutputL()
 {
-    return compressedOutputL;
+    return Decibels::gainToDecibels(compressedOutputL);
 }
 //==============================================================================
 bool FirstCompressorAudioProcessor::hasEditor() const

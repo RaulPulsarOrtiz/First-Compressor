@@ -88,7 +88,7 @@ public:
                                                              // rotaryAngle is the angle in radiants from the center of the slider to the start position or to the end position
 };
 
-class FirstCompressorAudioProcessorEditor  : public juce::AudioProcessorEditor, public Timer
+class FirstCompressorAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
     FirstCompressorAudioProcessorEditor (FirstCompressorAudioProcessor&);
@@ -97,7 +97,7 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
-    void timerCallback() override;
+  //  void timerCallback() override;
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
