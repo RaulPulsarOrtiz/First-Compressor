@@ -115,8 +115,8 @@ void FirstCompressorAudioProcessor::prepareToPlay (double sampleRate, int sample
    // meterSource.resize(getTotalNumOutputChannels(), sampleRate * 0.1 / samplesPerBlock);
     // ...
     //peakDetector.setSampleRate(sampleRate);
-    attackRamp.reset(sampleRate, fAttack);
-
+    attackRampL.reset(sampleRate, fAttack);
+    attackRampR.reset(sampleRate, fAttack);
    // gainReductionRamp.setCurrentAndTargetValue(1.0f);
 
 }
@@ -153,9 +153,14 @@ bool FirstCompressorAudioProcessor::isBusesLayoutSupported(const juce::AudioProc
 }
 #endif
 
-PeakDetector* FirstCompressorAudioProcessor::getPeakDetectorObject()
+PeakDetector* FirstCompressorAudioProcessor::getPeakDetectorObjectL()
 {
-    return &peakDetector;
+    return &peakDetectorL;
+}
+
+PeakDetector* FirstCompressorAudioProcessor::getPeakDetectorObjectR()
+{
+    return &peakDetectorR;
 }
 
 float FirstCompressorAudioProcessor::linearToDB(float linear) {
@@ -203,11 +208,13 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     fAttack = *apvts.getRawParameterValue("ATTACK"); // / 1000.f; //SmoothValue wants the ramp in seconds no in samples
     fRelease = *apvts.getRawParameterValue("RELEASE"); // / 1000.f; //SmoothValue wants the ramp in seconds no in samples
 
-    float smoothedGain = 1.0f; // start with no gain reduction
+    float smoothedGainL = 1.0f; // start with no gain reduction
+    float smoothedGainR = 1.0f;
 
     if (fAttack != previousfAttack)
     {
-        attackRamp.reset(getSampleRate(), fAttack);
+        attackRampL.reset(getSampleRate(), fAttack);
+        attackRampR.reset(getSampleRate(), fAttack);
         previousfAttack = fAttack; 
     }
     
@@ -228,37 +235,47 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
             float* inputSample = (&channelData[sample]); // Get pointer to current sample   
             if (channel == 0)
             {
-                peakL = peakDetector.process(*inputSample);
+                peakL = peakDetectorL.process(*inputSample);
+
             }
-            else
+            else if (channel == 1)
             {
-                peakR = peakDetector.process(*inputSample);
+                peakR = peakDetectorR.process(*inputSample);;
             }
         }
     }
-            gainReduction = compress(peakL, fThresh, fRatio);
+            gainReductionL = compress(peakL, fThresh, fRatio);
+            gainReductionR = compress(peakR, fThresh, fRatio);
                         // float currentValue = attackRamp.getCurrentValue();
             // bool isAttacking = gainReduction < currentValue;
             // double rampTime = (isAttacking ? previousfAttack : previousfRelease);
 
-            attackRamp.setTargetValue(gainReduction);
+            attackRampL.setTargetValue(gainReductionL);
+            attackRampR.setTargetValue(gainReductionR);
 
             // Now: apply the same ramped gain to both channels
          for (int sample = 0; sample < numSamples; ++sample)
          {
-                auto gainReductionRamped = attackRamp.getNextValue();
-                for (int channel = 0; channel < totalNumInputChannels; ++channel)
-                {
-                    auto* channelData = buffer.getWritePointer(channel);
-                    float* inputSample = (&channelData[sample]);
-                    *inputSample *= gainReductionRamped;
-                   
-                    compressedOutputL = *inputSample;
-                }
+                auto gainReductionRampedL = attackRampL.getNextValue();
+                auto gainReductionRampedR = attackRampR.getNextValue();
+               
+                    auto* channelDataL = buffer.getWritePointer(0);
+                    float* inputSampleL = (&channelDataL[sample]);
+                    *inputSampleL *= gainReductionRampedL;
+                  
+                    auto* channelDataR = buffer.getWritePointer(1);
+                    float* inputSampleR = (&channelDataR[sample]);
+                    *inputSampleR *= gainReductionRampedR;
+
+                    compressedOutputL = *inputSampleL;
+                    compressedOutputR = *inputSampleR;
+               
+                    outputMeterDataL = outputMeterDetectorL.process(compressedOutputL);
+                    outputMeterDataR = outputMeterDetectorR.process(compressedOutputR);
          }
          
          
-            rmsLevelDecibelsOutL = Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
+
             rmsLevelDecibelsOutR = Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));   
 }
 
@@ -272,15 +289,6 @@ float FirstCompressorAudioProcessor::getPeakValueR()
     return Decibels::gainToDecibels(peakR);
 }
 
-float FirstCompressorAudioProcessor::getRMSDecibelsL()
-{
-    return rmsLevelDecibelsL;
-}
-
-float FirstCompressorAudioProcessor::getRMSDecibelsR()
-{
-    return rmsLevelDecibelsR;
-}
 
 float FirstCompressorAudioProcessor::getRMSDecibelsOutL()
 {
@@ -292,10 +300,17 @@ float FirstCompressorAudioProcessor::getRMSDecibelsOutR()
     return rmsLevelDecibelsOutR;
 }
 
-float FirstCompressorAudioProcessor::getcompressedOutputL()
+float FirstCompressorAudioProcessor::getcompressedOutput(int channel)
 {
-    return Decibels::gainToDecibels(compressedOutputL);
+    if (channel == 0) {
+        return Decibels::gainToDecibels(outputMeterDataL);
+    }
+    else if (channel == 1) 
+    {
+        return Decibels::gainToDecibels(outputMeterDataL);
+    }
 }
+
 //==============================================================================
 bool FirstCompressorAudioProcessor::hasEditor() const
 {

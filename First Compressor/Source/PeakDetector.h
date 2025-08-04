@@ -18,13 +18,16 @@ public:
 
     }
 
-    float process(float inputSample);
+    float process(float inputSample); //This one is smoothed for metering
 
     // double getSampleRate();
 private:
+   
+
     double sampleRate{ 48000.0 };
     double windowLengthMs{ 2.0 };
-
+   
+    //Constants for metering
     int windowLengthSamples{ 96 };
     int sampleCounter{ 0 };
 
@@ -32,5 +35,6 @@ private:
     float smoothedPeak{ 0.0f };
 
     const float attackCoeff{ 0.1f };
-    const float releaseCoeff{ 0.0003f };
+    const float releaseCoeffMeter{ 0.0003f };
+
 };

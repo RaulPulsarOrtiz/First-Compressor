@@ -29,7 +29,8 @@ public:
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
    #endif
 
-    PeakDetector* getPeakDetectorObject();
+    PeakDetector* getPeakDetectorObjectL();
+    PeakDetector* getPeakDetectorObjectR();
     float linearToDB(float linear);
     float dBToLinear(float dB);
     float compress(float input, float fThresh, float fRatio);
@@ -37,11 +38,11 @@ public:
 
     float getPeakValueL();
     float getPeakValueR();
-    float getRMSDecibelsL(); 
-    float getRMSDecibelsR();
+
     float getRMSDecibelsOutL();
     float getRMSDecibelsOutR();
-    float getcompressedOutputL();
+    float getcompressedOutput(int channel);
+
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -71,13 +72,14 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FirstCompressorAudioProcessor)
  //   foleys::LevelMeterSource meterSource;
-    PeakDetector peakDetector;
+    PeakDetector peakDetectorL, peakDetectorR;
+    PeakDetector outputMeterDetectorL, outputMeterDetectorR;
    // float fThresh = 0.f;
    // float fRatio = 0.f;
     float fThresh{ 0.f };
     float fRatio{ 0.f };
    // juce::SmoothedValue<float> attackReleaseRamp;
-    juce::SmoothedValue<float> attackRamp;
+    juce::SmoothedValue<float> attackRampL, attackRampR;
     float fAttack{ 0.f };
     float previousfAttack{ 0.f };
     float fRelease{ 0.f };
@@ -87,7 +89,9 @@ private:
     float peakL, peakR;
     float compressedOutputL, compressedOutputR;
     
+    float outputMeterDataL, outputMeterDataR;
+    
     float rmsLevelDecibelsL, rmsLevelDecibelsR, rmsLevelDecibelsOutL, rmsLevelDecibelsOutR;
 
-    float gainReduction;
+    float gainReductionL, gainReductionR;
 };

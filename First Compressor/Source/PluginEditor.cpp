@@ -68,11 +68,11 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
     : AudioProcessorEditor(&p), audioProcessor(p), 
     verticalMeterL([&]() { return audioProcessor.getPeakValueL(); }), 
     verticalMeterR([&]() { return audioProcessor.getPeakValueR(); }),
-    verticalOutputMeterL([&]() { return audioProcessor.getcompressedOutputL(); }),
-    verticalOutputMeterR([&]() { return audioProcessor.getRMSDecibelsOutR(); })
+    verticalOutputMeterL([&]() { return audioProcessor.getcompressedOutput(0); }),
+    verticalOutputMeterR([&]() { return audioProcessor.getcompressedOutput(1); })
 {
-    peakDetectorGUI.setPeakDetectorObject(audioProcessor.getPeakDetectorObject());
- 
+    peakDetectorGUI.setPeakDetectorObject(audioProcessor.getPeakDetectorObjectL());
+    peakDetectorGUI.setPeakDetectorObject(audioProcessor.getPeakDetectorObjectR());
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
    // levelMeterLookAndFeel.setColour(foleys::LevelMeter::lmMeterGradientLowColour, juce::Colours::green);

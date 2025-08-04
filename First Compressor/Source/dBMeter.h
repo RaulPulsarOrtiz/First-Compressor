@@ -70,7 +70,7 @@ public:
         gradient.addColour(0.5, Colours::yellow);
     }
 
-    void timerCallback()
+    void timerCallback() //Unique issue is that I will have a Timer for every instance of dBMeter created. (4 in this case)
     {
         repaint();
     }
