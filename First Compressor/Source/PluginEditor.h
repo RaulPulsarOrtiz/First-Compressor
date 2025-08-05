@@ -117,4 +117,8 @@ private:
     /**Custom Look&Feel for 'Filter' slider */
     CompressorLookAndFeel compressorLookAndFeel;
     verticalMeter verticalMeterL, verticalMeterR, verticalOutputMeterL, verticalOutputMeterR;
+    gainRecuctionMeter gainReductMeterL, gainReductMeterR;
+
+    Label threshLabel, ratioLabel, attackLabel;
+    Image background;
 };

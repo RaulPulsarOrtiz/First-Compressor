@@ -221,11 +221,8 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
    // if (fRelease != previousfRelease)
    // {
    //     previousfRelease = fRelease;
-   // }
+   // } 
    
-    rmsLevelDecibelsL = Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
-    rmsLevelDecibelsR = Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));
-    
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer(channel);
@@ -256,8 +253,8 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
             // Now: apply the same ramped gain to both channels
          for (int sample = 0; sample < numSamples; ++sample)
          {
-                auto gainReductionRampedL = attackRampL.getNextValue();
-                auto gainReductionRampedR = attackRampR.getNextValue();
+                    gainReductionRampedL = attackRampL.getNextValue();
+                    gainReductionRampedR = attackRampR.getNextValue();
                
                     auto* channelDataL = buffer.getWritePointer(0);
                     float* inputSampleL = (&channelDataL[sample]);
@@ -272,11 +269,7 @@ void FirstCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
                
                     outputMeterDataL = outputMeterDetectorL.process(compressedOutputL);
                     outputMeterDataR = outputMeterDetectorR.process(compressedOutputR);
-         }
-         
-         
-
-            rmsLevelDecibelsOutR = Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));   
+         } 
 }
 
 float FirstCompressorAudioProcessor::getPeakValueL()
@@ -289,17 +282,6 @@ float FirstCompressorAudioProcessor::getPeakValueR()
     return Decibels::gainToDecibels(peakR);
 }
 
-
-float FirstCompressorAudioProcessor::getRMSDecibelsOutL()
-{
-    return rmsLevelDecibelsOutL;
-}
-
-float FirstCompressorAudioProcessor::getRMSDecibelsOutR()
-{
-    return rmsLevelDecibelsOutR;
-}
-
 float FirstCompressorAudioProcessor::getcompressedOutput(int channel)
 {
     if (channel == 0) {
@@ -308,6 +290,17 @@ float FirstCompressorAudioProcessor::getcompressedOutput(int channel)
     else if (channel == 1) 
     {
         return Decibels::gainToDecibels(outputMeterDataL);
+    }
+}
+
+float FirstCompressorAudioProcessor::getGainReduction(int channel)
+{
+    if (channel == 0) {
+        return Decibels::gainToDecibels(gainReductionRampedL);
+    }
+    else if (channel == 1)
+    {
+        return Decibels::gainToDecibels(gainReductionRampedR);
     }
 }
 

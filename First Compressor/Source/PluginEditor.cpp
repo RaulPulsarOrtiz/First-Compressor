@@ -69,7 +69,9 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
     verticalMeterL([&]() { return audioProcessor.getPeakValueL(); }), 
     verticalMeterR([&]() { return audioProcessor.getPeakValueR(); }),
     verticalOutputMeterL([&]() { return audioProcessor.getcompressedOutput(0); }),
-    verticalOutputMeterR([&]() { return audioProcessor.getcompressedOutput(1); })
+    verticalOutputMeterR([&]() { return audioProcessor.getcompressedOutput(1); }),
+    gainReductMeterL([&]() { return audioProcessor.getGainReduction(0); }),
+    gainReductMeterR([&]() { return audioProcessor.getGainReduction(1); })
 {
     peakDetectorGUI.setPeakDetectorObject(audioProcessor.getPeakDetectorObjectL());
     peakDetectorGUI.setPeakDetectorObject(audioProcessor.getPeakDetectorObjectR());
@@ -82,13 +84,18 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
     sldrThreshold.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     sldrThreshold.setTextValueSuffix("dB"); //Make the tralation between slider 0 to 1 to dB
     sldrThreshold.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 70, 20);
+    sldrThreshold.setColour(juce::Slider::textBoxTextColourId, juce::Colours::orangered);
+    sldrThreshold.setColour(juce::Slider::textBoxBackgroundColourId, juce::Colours::black);
+    sldrThreshold.setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::orangered);
     sldrThreshold.setLookAndFeel(&compressorLookAndFeel);
     addAndMakeVisible(sldrThreshold);
     thresholdParameterAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "THRESHOLD", sldrThreshold);
 
     sldrRatio.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    // sldrRatio.setTextValueSuffix("dB"); //Make the tralation between slider 0 to 1 to dB
     sldrRatio.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 70, 20);
+    sldrRatio.setColour(juce::Slider::textBoxTextColourId, juce::Colours::orangered);
+    sldrRatio.setColour(juce::Slider::textBoxBackgroundColourId, juce::Colours::black);
+    sldrRatio.setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::orangered);
     sldrRatio.setLookAndFeel(&compressorLookAndFeel);
     addAndMakeVisible(sldrRatio);
    ratioParameterAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "RATIO", sldrRatio);
@@ -96,6 +103,9 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
    sldrAttack.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
    sldrAttack.setTextValueSuffix("ms"); //Make the tralation between slider 0 to 1 to dB
    sldrAttack.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 70, 20);
+   sldrAttack.setColour(juce::Slider::textBoxTextColourId, juce::Colours::orangered);
+   sldrAttack.setColour(juce::Slider::textBoxBackgroundColourId, juce::Colours::black);
+   sldrAttack.setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::orangered);
    sldrAttack.setLookAndFeel(&otherLookAndFeel);
    addAndMakeVisible(sldrAttack);
    attackParameterAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "ATTACK", sldrAttack);
@@ -103,9 +113,32 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
    sldrRelease.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
    sldrRelease.setTextValueSuffix("ms"); //Make the tralation between slider 0 to 1 to dB
    sldrRelease.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 70, 20);
+   sldrRelease.setColour(juce::Slider::textBoxTextColourId, juce::Colours::orangered);
+   sldrRelease.setColour(juce::Slider::textBoxBackgroundColourId, juce::Colours::black);
+   sldrRelease.setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::orangered);
    sldrRelease.setLookAndFeel(&otherLookAndFeel);
    addAndMakeVisible(sldrRelease);
    releaseParameterAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "RELEASE", sldrRelease);
+
+   juce::Font myFont(20.0f);
+   myFont.setTypefaceStyle("Bold"); // or "Regular", "Light", etc.
+
+   addAndMakeVisible(threshLabel);
+   threshLabel.setText("Thresh", dontSendNotification);
+   threshLabel.setColour(juce::Label::textColourId, juce::Colours::orangered);
+   threshLabel.setFont(myFont);
+
+   addAndMakeVisible(ratioLabel);
+   ratioLabel.setText("Ratio", dontSendNotification);
+   ratioLabel.setColour(juce::Label::textColourId, juce::Colours::orangered);
+   ratioLabel.setFont(myFont);
+
+   addAndMakeVisible(attackLabel);
+   attackLabel.setText("Attack", dontSendNotification);
+   attackLabel.setColour(juce::Label::textColourId, juce::Colours::aliceblue);
+
+   attackLabel.setFont(myFont);
+
 
   //  meterGUI.setMeterSource(&audioProcessor.getMeterSource());
   //  addAndMakeVisible(meterGUI);
@@ -116,7 +149,9 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
 
     addAndMakeVisible(verticalOutputMeterL);
     addAndMakeVisible(verticalOutputMeterR);
-   // startTimerHz(24); //24 fps
+
+    addAndMakeVisible(gainReductMeterL);
+    addAndMakeVisible(gainReductMeterR);
 }
 
 FirstCompressorAudioProcessorEditor::~FirstCompressorAudioProcessorEditor()
@@ -152,6 +187,13 @@ void FirstCompressorAudioProcessorEditor::paint (juce::Graphics& g)
 
 
     g.fillAll(Colours::darkgrey);
+
+    background = ImageCache::getFromMemory(BinaryData::engine_back_jpg, BinaryData::engine_back_jpgSize);
+    g.drawImageWithin(background, 0, 0, getWidth(), getHeight(), RectanglePlacement::stretchToFit);
+
+    juce::AffineTransform transform = juce::AffineTransform::scale(1.f).translated(-70, -30); // Scale 110%
+    g.drawImageTransformed(background, transform);
+
 }
 
 void FirstCompressorAudioProcessorEditor::resized()
@@ -187,10 +229,15 @@ void FirstCompressorAudioProcessorEditor::resized()
     sldrAttack.setBounds(attRelLeftCentreX + 40, attRelLeftCentreY, 90, 90);
     sldrRelease.setBounds(attRelRightCentreX - 130, attRelRightCentreY, 90, 90);
 
-    verticalMeterL.setBounds(60, 100, 15, 200);
-    verticalMeterR.setBounds(90, 100, 15, 200);
-    verticalOutputMeterL.setBounds(610, 100, 15, 200);
-    verticalOutputMeterR.setBounds(640, 100, 15, 200);
+    threshLabel.setBounds(leftCentreX + 42, leftCentreY - 30, 70, 25);
+    ratioLabel.setBounds(rightCentreX + 42, rightCentreY - 30, 70, 25);
+    attackLabel.setBounds(attRelLeftCentreX + 52, attRelLeftCentreY + 100, 60, 20);
+
+    verticalMeterL.setBounds(40, 100, 30, 200);
+    verticalMeterR.setBounds(75, 100, 30, 200);
+    verticalOutputMeterL.setBounds(580, 100, 30, 200);
+    verticalOutputMeterR.setBounds(615, 100, 30, 200);
+    gainReductMeterL.setBounds(670, 100, 25, 50);
 }
 
 //void FirstCompressorAudioProcessorEditor::timerCallback()

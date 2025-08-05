@@ -38,10 +38,8 @@ public:
 
     float getPeakValueL();
     float getPeakValueR();
-
-    float getRMSDecibelsOutL();
-    float getRMSDecibelsOutR();
     float getcompressedOutput(int channel);
+    float getGainReduction(int channel);
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -90,8 +88,7 @@ private:
     float compressedOutputL, compressedOutputR;
     
     float outputMeterDataL, outputMeterDataR;
-    
-    float rmsLevelDecibelsL, rmsLevelDecibelsR, rmsLevelDecibelsOutL, rmsLevelDecibelsOutR;
+    float gainReductionRampedL, gainReductionRampedR;
 
     float gainReductionL, gainReductionR;
 };
