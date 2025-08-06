@@ -47,17 +47,13 @@ class OtherLookAndFeel : public juce::LookAndFeel_V4
 public:
     OtherLookAndFeel() //On the constructor we set up some default colours for different parts of the GUI
     {
-        /* Remains of a past GUI */
-        //   setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colours::azure); //Line of the Slider
-        //   setColour(juce::Slider::rotarySliderFillColourId, juce::Colours::goldenrod); //Line of the slider from 0 to the current value
-        //   setColour(juce::Slider::thumbColourId, juce::Colours::transparentBlack); //Dot of the current value
-        // setColour(juce::Slider::trackColourId, juce::Colours::cornflowerblue);
+
     }
     ~OtherLookAndFeel() {}
 
     /** Get Image (binary data) from memory
-    * @param BinaryData::BinaryData::BOS_knob_DIVA_52x52_128f_png is the Binary Data of image for the delayTime knob and feedback slider (called sldrDelayTime and in the code)
-    * @param BinaryData::BOS_knob_DIVA_52x52_128f_pngSize is the size of the frame of each slider image in the strip
+    * @param BinaryData::BinaryData::attackKnob_png is the Binary Data of image for the Attack and Release sliders
+    * @param BinaryData::attackKnob_pngSize is the size of the frame of each slider image in the strip
     */
     Image knobAttackStrip = ImageCache::getFromMemory(BinaryData::attackKnob_png, BinaryData::attackKnob_pngSize);
 
@@ -76,8 +72,8 @@ public:
     ~CompressorLookAndFeel() {}
 
     /** Get Image (binary data) from memory
-    * @param BinaryData::Emu_Drummulator_png is the Binary Data of image for the Filter Cutoff slider (called sldrFreqCutoff and sldrDelayGain in the code)
-    * @param BinaryData::Emu_Drummulator_pngSize is the size of the frame of each slider image in the strip
+    * @param BinaryData::ThresholdKnob_png is the Binary Data of image for the Threshold and the Ratio sliders
+    * @param BinaryData::ThresholdKnob_pngSize is the size of the frame of each slider image in the strip
     */
     Image knobThresholdStrip = ImageCache::getFromMemory(BinaryData::ThresholdKnob_png, BinaryData::ThresholdKnob_pngSize);
 
@@ -97,28 +93,28 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
-  //  void timerCallback() override;
+
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
+
     FirstCompressorAudioProcessor& audioProcessor;
-    PeakDetectorGUI peakDetectorGUI;
- //   foleys::LevelMeter meterGUI; // The UI meter
-//foleys::LevelMeterLookAndFeel levelMeterLookAndFeel;
-  //  foleys::LevelMeter meterGUI{ foleys::LevelMeter::Minimal };
+
+    PeakDetectorGUI peakDetectorGUI; //Don't know if I need thisssssssssssss
+    /**Slider declaration: */
     juce::Slider sldrThreshold, sldrRatio, sldrAttack, sldrRelease;
+    /** ValueTreeState Attachments */
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> thresholdParameterAttachment, ratioParameterAttachment, attackParameterAttachment, releaseParameterAttachment;
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FirstCompressorAudioProcessorEditor)
-
-
-        /**Custom Look&Feel for 'Delay Time' and 'Feedback' sliders */
-    OtherLookAndFeel otherLookAndFeel;
-
-    /**Custom Look&Feel for 'Filter' slider */
+    /**Custom Look&Feel for 'Threshold' adn 'ratio' slider */
     CompressorLookAndFeel compressorLookAndFeel;
+    /**Custom Look&Feel for 'Attack' and 'Release' sliders */
+    OtherLookAndFeel otherLookAndFeel;
+    /**Objects from the vertical meter class for input and output */
     verticalMeter verticalMeterL, verticalMeterR, verticalOutputMeterL, verticalOutputMeterR;
+    /**Objects from the gain reduction meter class for show the gain that is being reduce by the action of the compressor */
     gainRecuctionMeter gainReductMeterL, gainReductMeterR;
-
+    /**Lables displayed around the sliders explaining what this sliders are */
     Label threshLabel, ratioLabel, attackLabel;
+    /** GUI background image */
     Image background;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FirstCompressorAudioProcessorEditor)
 };

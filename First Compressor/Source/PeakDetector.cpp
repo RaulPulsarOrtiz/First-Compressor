@@ -10,14 +10,6 @@
 
 #include "PeakDetector.h"
 
-
-
-//double PeakDetector::getSampleRate()
-//{
-//    return sampleRate;
-//}
-
-
 float PeakDetector::process(float inputSample)
 {
     float absSample = std::abs(inputSample);

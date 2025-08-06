@@ -121,7 +121,9 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
    releaseParameterAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "RELEASE", sldrRelease);
 
    juce::Font myFont(20.0f);
-   myFont.setTypefaceStyle("Bold"); // or "Regular", "Light", etc.
+   myFont.setTypefaceStyle("Bold");
+   juce::Font myFontOutline(18.0f);
+   myFontOutline.setTypefaceStyle("Bold");
 
    addAndMakeVisible(threshLabel);
    threshLabel.setText("Thresh", dontSendNotification);
@@ -134,11 +136,9 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
    ratioLabel.setFont(myFont);
 
    addAndMakeVisible(attackLabel);
-   attackLabel.setText("Attack", dontSendNotification);
-   attackLabel.setColour(juce::Label::textColourId, juce::Colours::aliceblue);
-
-   attackLabel.setFont(myFont);
-
+   attackLabel.setText("ATTACK", dontSendNotification);
+   attackLabel.setColour(juce::Label::textColourId, juce::Colours::yellowgreen);
+   attackLabel.setFont(myFontOutline);
 
   //  meterGUI.setMeterSource(&audioProcessor.getMeterSource());
   //  addAndMakeVisible(meterGUI);
