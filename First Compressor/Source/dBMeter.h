@@ -12,19 +12,27 @@
 
 #include <JuceHeader.h>
 
-class verticalMeter : public Component, public Timer
+class VerticalMeter : public Component, public Timer
 {
 public:
-    verticalMeter(std::function<float()>&& valueFunction) : valueSupplier(std::move(valueFunction)) //&& express that is a right value reference. The valueFucntion is move into the valueSupplier instead of copied. When I call valueSupplier I will get the latest value of the level
+    /**Class constructor gets the last value of the level for drawing the meter data. 
+    * Uses a Timer for drawing the meter 24 fps
+    */
+    VerticalMeter(std::function<float()>&& valueFunction) : valueSupplier(std::move(valueFunction)) //&& express that is a right value reference. The valueFucntion is move into the valueSupplier instead of copied. When I call valueSupplier I will get the latest value of the level
     {
         startTimer(24);
     }
     //Because it has a constructor, we need to initialise these instances within the constructor parent (Editor), and there is where we pass the function pointer
 
+    /**This paint function draws the meters for Input and Output 
+    * Uses valueSupplier() to set the value of the rectangle that represent the meter data (dB)
+    * Gets local bonds and turn them into a float
+    * Fill the entire background of the "component" grey and set a gradient of color from green to yellow to red.
+    * It maps the level from the Peak Detector to be drawn between -60 dB to 0 dB.
+    * It also draws the labels for marking the dB in the rectangle with 7 steps spread evenly
+    */
     void paint(Graphics& g) override
     {
-
-        //Vertical
         const auto level = valueSupplier();
 
         auto bounds = getLocalBounds().toFloat();
@@ -36,16 +44,10 @@ public:
         g.setGradientFill(gradient);
 
         //Map level from -60 / +6 to 0 / height
-        const auto levelHeighth = jmap(level, -60.f, +6.f, 0.f, static_cast<float>(getHeight()));
-       
-        // Draw the white level bar from the left
-        //juce::Rectangle<float> levelBar = bounds;
-        //levelBar.setWidth(levelHeighth);
-       
-        // Meter fill (simplified example)
-        g.fillRect(bounds.removeFromBottom(levelHeighth));
-      //  g.setColour(juce::Colours::white);
-     //   g.fillRoundedRectangle(levelBar, 5.f); //Here I set the Level to be the rectangle painted
+        const auto levelHeighth = jmap(level, -60.f, +6.f, 0.f, static_cast<float>(getHeight()));  
+               
+        // Meter fill 
+        g.fillRect(bounds.removeFromBottom(levelHeighth)); //Here I set the Level to be the rectangle painted
 
         // Draw dB labels
         g.setColour(Colours::white);
@@ -67,9 +69,10 @@ public:
     {
         DBG("Meter level: " << value);
         level = juce::jlimit(-60.f, 6.f, value);
-       // repaint();
+
     }
 
+    /** In the resized function there is the declaration of the gradient */
     void resized() override
     {
          const auto bounds = getLocalBounds().toFloat();
@@ -85,7 +88,8 @@ public:
         gradient.addColour(0.5, Colours::yellow);
     }
 
-    void timerCallback() //Unique issue is that I will have a Timer for every instance of dBMeter created. (4 in this case)
+    /**Repaint the rectangle 24 times per second */
+    void timerCallback() //Unique issue is that I will have a Timer for every instance of dBMeter created. (5 in this case)
     {
         repaint();
     }
@@ -96,10 +100,15 @@ private:
     ColourGradient gradient;
 };
 
-class gainRecuctionMeter : public Component, public Timer
+/** Class declaration for the gain reduction meter which only goes from -30 to 0.
+* The label has only 3 steps, which are 0 dB, -15 dB and -30 dB, altought this last one is not visible right now
+* Everything else in this class is the same as the VerticalMeter class.
+* For the next version this will be only one abstract class which those features overwritable
+*/
+class GainRecuctionMeter : public Component, public Timer
 {
 public:
-    gainRecuctionMeter(std::function<float()>&& valueFunction) : valueSupplier(std::move(valueFunction)) //&& express that is a right value reference. The valueFucntion is move into the valueSupplier instead of copied. When I call valueSupplier I will get the latest value of the level
+    GainRecuctionMeter(std::function<float()>&& valueFunction) : valueSupplier(std::move(valueFunction)) //&& express that is a right value reference. The valueFucntion is move into the valueSupplier instead of copied. When I call valueSupplier I will get the latest value of the level
     {
         startTimer(24);
     }

@@ -156,7 +156,10 @@ FirstCompressorAudioProcessorEditor::FirstCompressorAudioProcessorEditor (FirstC
 
 FirstCompressorAudioProcessorEditor::~FirstCompressorAudioProcessorEditor()
 {
-    //juce::LookAndFeel::setDefaultLookAndFeel(nullptr);
+    sldrThreshold.setLookAndFeel(nullptr); //This components are using a custom LookAndFeel class that is destroyed when the Editor is still calling that class. So they need to be set to a nullptr to don't throw an exception
+    sldrRatio.setLookAndFeel(nullptr);
+    sldrAttack.setLookAndFeel(nullptr);
+    sldrRelease.setLookAndFeel(nullptr);
 }
 
 //==============================================================================

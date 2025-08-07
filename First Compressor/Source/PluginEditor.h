@@ -97,8 +97,8 @@ public:
 private:
 
     FirstCompressorAudioProcessor& audioProcessor;
-
-    PeakDetectorGUI peakDetectorGUI; //Don't know if I need thisssssssssssss
+    /** This class is empty right now but it could be necesary on the future */ 
+    PeakDetectorGUI peakDetectorGUI; 
     /**Slider declaration: */
     juce::Slider sldrThreshold, sldrRatio, sldrAttack, sldrRelease;
     /** ValueTreeState Attachments */
@@ -108,9 +108,9 @@ private:
     /**Custom Look&Feel for 'Attack' and 'Release' sliders */
     OtherLookAndFeel otherLookAndFeel;
     /**Objects from the vertical meter class for input and output */
-    verticalMeter verticalMeterL, verticalMeterR, verticalOutputMeterL, verticalOutputMeterR;
+    VerticalMeter verticalMeterL, verticalMeterR, verticalOutputMeterL, verticalOutputMeterR;
     /**Objects from the gain reduction meter class for show the gain that is being reduce by the action of the compressor */
-    gainRecuctionMeter gainReductMeterL, gainReductMeterR;
+    GainRecuctionMeter gainReductMeterL, gainReductMeterR;
     /**Lables displayed around the sliders explaining what this sliders are */
     Label threshLabel, ratioLabel, attackLabel;
     /** GUI background image */
